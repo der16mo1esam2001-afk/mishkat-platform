@@ -105,19 +105,103 @@
           <div class="module-detail-hero" id="moduleHero"><div><span class="section-kicker" id="moduleKicker">DOMAIN / 01</span><h1 id="moduleTitle">VITALIS</h1><p id="moduleDescription"></p><span class="stage-tag" id="moduleStage">مرحلة التأسيس</span></div><div class="module-detail-icon" id="moduleIcon">✚</div></div>
           <div class="detail-grid"><section class="panel"><div class="panel-heading"><div><span class="section-kicker">DOMAIN CAPABILITIES</span><h3>الوحدات الأساسية</h3></div></div><div id="moduleCapabilities" class="capability-list"></div></section><section class="panel"><div class="panel-heading"><div><span class="section-kicker">DATA BOUNDARY</span><h3>حدود البيانات</h3></div></div><div class="data-boundary"><div class="database-visual"><span>DB</span></div><strong id="moduleDatabase">قاعدة مستقلة</strong><p>لا تُشارك سجلات هذا المجال مع قواعد القطاعات الأخرى.</p><span class="connection-state" id="moduleDbState">حالة الاتصال: لم يتم التحقق</span></div><div class="panel-note" id="moduleSafety"></div></section></div>
           <section class="panel connector-panel"><div class="panel-heading"><div><span class="section-kicker">REAL DATA INTEGRATION</span><h3>البيانات والاتصال</h3></div><span class="tiny-status">لا بيانات تجريبية</span></div><p id="moduleDataNote">سيظهر هنا اتصال المصدر الفعلي وحالة الاستيراد بعد ضبط البيئة.</p><div id="moduleSources" class="source-chip-list"></div><div class="connector-actions"><button class="primary-button" id="nasaAction" hidden>استيراد بيانات NASA POWER <span>↗</span></button><span class="small-muted" id="connectorDisclaimer">لا تُعرض أي قيمة قبل جلبها والتحقق من مصدرها.</span></div></section>
+
+          <!-- VITALIS Workspace -->
+          <section class="panel vitalis-workspace" id="vitalisWorkspace" hidden>
+            <div class="panel-heading"><div><span class="section-kicker">VITALIS AI WORKSPACE</span><h3>السجلات السريرية والملاحظات الصحية</h3></div><span class="tiny-status">قاعدة VITALIS المستقلة</span></div>
+            <p class="panel-note">السجلات الصحية تستخدم معرفات مستعارة de-identified. لا يقدم النظام تشخيصاً مستقلاً أو وصف دواء.</p>
+            <div class="nexora-columns">
+              <section class="nexora-subpanel">
+                <h4>تسجيل ملف صحي مستعار</h4>
+                <form id="vitalisPatientForm" class="nexora-form compact">
+                  <label>المعرف المستعار<input id="vitalisRef" required placeholder="مثال: PAT-EGY-042"></label>
+                  <label>الفئة العمرية<select id="vitalisAgeBand"><option value="18-29">18-29</option><option value="30-44" selected>30-44</option><option value="45-59">45-59</option><option value="60-74">60-74</option><option value="75+">75+</option></select></label>
+                  <label>رمز الجنس<select id="vitalisSex"><option value="M">ذكر (M)</option><option value="F">أنثى (F)</option><option value="UNK">غير محدد (UNK)</option></select></label>
+                  <button class="primary-button" type="submit">تسجيل الملف المستعار</button>
+                </form>
+              </section>
+              <section class="nexora-subpanel">
+                <h4>تسجيل ملاحظة سريرية (FHIR R5)</h4>
+                <form id="vitalisObsForm" class="nexora-form compact">
+                  <label>كود LOINC<input id="vitalisLoinc" required placeholder="8480-6"></label>
+                  <label>الوصف<input id="vitalisDisplay" placeholder="Systolic Blood Pressure"></label>
+                  <label>القيمة العددية والوحدة<input id="vitalisValue" type="number" step="any" placeholder="120"><input id="vitalisUnit" placeholder="mmHg"></label>
+                  <button class="secondary-button" type="submit">حفظ الملاحظة السريرية</button>
+                </form>
+              </section>
+            </div>
+            <div id="vitalisRecordList" class="nexora-record-list"><p class="empty-cell">سجل ملفاً للبدء.</p></div>
+          </section>
+
+          <!-- AQUANEX Workspace -->
+          <section class="panel aquanex-workspace" id="aquanexWorkspace" hidden>
+            <div class="panel-heading"><div><span class="section-kicker">AQUANEX WORKSPACE</span><h3>إدارة أصول المياه ورصد الشبكة</h3></div><span class="tiny-status">وضع القراءة فقط</span></div>
+            <p class="panel-note">جميع القياسات الميدانية للقراءة فقط دون أي تحكم بصمامات أو مضخات. التنبيهات تحتاج تحققاً ميدانياً.</p>
+            <form id="aquanexAssetForm" class="nexora-form compact">
+              <label>كود الأصل<input id="aquanexAssetCode" required placeholder="PIPE-CAIRO-NORTH-1"></label>
+              <label>نوع الأصل<select id="aquanexAssetType"><option value="pipeline">أنبوب رئيسي (pipeline)</option><option value="pump">مضخة (pump)</option><option value="reservoir">خزان (reservoir)</option><option value="treatment_plant">محطة معالجة</option><option value="meter">عداد تدفق</option></select></label>
+              <label>الطاقة الاستيعابية اليومية (م³)<input id="aquanexCapacity" type="number" step="any" placeholder="5000"></label>
+              <button class="primary-button" type="submit">تسجيل أصل المياه</button>
+            </form>
+            <div id="aquanexAssetList" class="nexora-record-list"><p class="empty-cell">لا توجد أصول مسجلة بعد.</p></div>
+          </section>
+
+          <!-- AGRONEX Workspace -->
+          <section class="panel agronex-workspace" id="agronexWorkspace" hidden>
+            <div class="panel-heading"><div><span class="section-kicker">AGRONEX WORKSPACE</span><h3>إدارة المزارع ورصد المحاصيل</h3></div><span class="tiny-status">إشراف زراعي</span></div>
+            <p class="panel-note">أمراض النبات تُسجل بحالة "اشتباه" فقط، ولا تُصرف توصيات كيميائية أو مبيدات دون ترخيص محلي معتمد.</p>
+            <form id="agronexFarmForm" class="nexora-form compact">
+              <label>كود المزرعة<input id="agronexFarmCode" required placeholder="FARM-DELTA-01"></label>
+              <label>اسم المزرعة<input id="agronexFarmName" required placeholder="مزرعة دلتا النيل"></label>
+              <label>المساحة (هكتار)<input id="agronexArea" type="number" step="any" placeholder="15.5"></label>
+              <button class="primary-button" type="submit">تسجيل المزرعة</button>
+            </form>
+            <div id="agronexFarmList" class="nexora-record-list"><p class="empty-cell">لا توجد مزارع مسجلة بعد.</p></div>
+          </section>
+
+          <!-- ENERGIS Workspace -->
+          <section class="panel energis-workspace" id="energisWorkspace" hidden>
+            <div class="panel-heading"><div><span class="section-kicker">ENERGIS WORKSPACE</span><h3>المواقع والتنبؤ بالأحمال والطاقة</h3></div><span class="tiny-status">تنبؤ مع نطاق عدم يقين</span></div>
+            <p class="panel-note">التنبؤات بالأحمال تتضمن فترات ثقة وحدود دنيا وعليا. المنصة لا تصدر أوامر قواطع للشبكة الكهربائية.</p>
+            <form id="energisSiteForm" class="nexora-form compact">
+              <label>كود الموقع<input id="energisSiteCode" required placeholder="SITE-SOLAR-01"></label>
+              <label>اسم الموقع<input id="energisSiteName" required placeholder="محطة بنبان للطاقة الشمسية"></label>
+              <label>نوع الموقع<select id="energisSiteType"><option value="solar_plant">محطة شمسية</option><option value="wind_plant">محطة رياح</option><option value="factory">منشأة صناعية</option><option value="building">مبنى إداري</option></select></label>
+              <button class="primary-button" type="submit">تسجيل موقع الطاقة</button>
+            </form>
+            <div id="energisSiteList" class="nexora-record-list"><p class="empty-cell">لا توجد مواقع مسجلة بعد.</p></div>
+          </section>
+
+          <!-- NEXORA Workspace -->
           <section class="panel nexora-workspace" id="nexoraWorkspace" hidden>
             <div class="panel-heading"><div><span class="section-kicker">NEXORA LEARNER WORKSPACE · PILOT</span><h3>ملف التعلم والأهداف والمسارات</h3></div><span class="tiny-status">وظائف فعلية متصلة بقاعدة NEXORA</span></div>
-            <p class="panel-note">هذه نسخة تجريبية للبالغين فقط. يلزم تأكيد السن والموافقة قبل حفظ ملف التعلم. لا يوجد مساعد AI أو محتوى مولّد في هذا الإصدار.</p>
+            <p class="panel-note">هذه نسخة تجريبية للبالغين فقط. يلزم تأكيد السن والموافقة قبل حفظ ملف التعلم. يتوفر مساعد دراسي منخفض المخاطر يوثق كل حقيقة بمصدرها.</p>
             <form id="nexoraProfileForm" class="nexora-form">
               <label>اسم العرض<input id="nexoraDisplayName" name="display_name" minlength="1" maxlength="100" required placeholder="اسم يظهر داخل ملف التعلم"></label>
               <label>لغة الواجهة<select id="nexoraLocale" name="locale"><option value="ar-EG">العربية</option><option value="en">English</option></select></label>
               <label class="consent-check"><input id="nexoraAdultConfirm" type="checkbox" required> أؤكد أن ملف المتعلم يخص شخصاً بالغاً (18 عاماً أو أكثر).</label>
               <label class="consent-check"><input id="nexoraConsentConfirm" type="checkbox" required> قرأت ووافقت على سياسة حفظ ملف التعلم <strong id="nexoraConsentVersion">جارٍ تحميل الإصدار…</strong>.</label>
               <button class="primary-button" type="submit" id="saveNexoraProfile">حفظ ملف التعلم</button>
-              <div class="nexora-privacy-actions"><button class="text-button" type="button" id="nexoraExportData">تصدير بياناتي</button><button class="text-button" type="button" id="revokeNexoraConsent">سحب الموافقة</button></div>
+              <div class="nexora-privacy-actions">
+                <button class="text-button" type="button" id="nexoraExportData">تصدير بياناتي</button>
+                <button class="text-button" type="button" id="revokeNexoraConsent">سحب الموافقة</button>
+                <button class="text-button" type="button" id="purgeNexoraData" style="color:var(--danger)">حذف حسابي وبياناتي نهائياً</button>
+              </div>
               <span id="nexoraProfileState" class="small-muted">لم يتم إنشاء ملف تعلم بعد.</span>
             </form>
-            <div class="nexora-columns">
+
+            <!-- Grounded Study Assistant Box -->
+            <div class="nexora-assistant-box" style="margin-top:1.5rem;padding:1rem;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;">
+              <h4>المساعد الدراسي المدعوم بالمصادر المرخصة (Grounded Assistant)</h4>
+              <p class="small-muted">اسأل عن مفاهيم برمجية أو مناخية أو طاقية موثقة. لا يختلق المساعد أي معلومة بدون اقتباس موثق.</p>
+              <form id="nexoraAskForm" class="nexora-form compact">
+                <label>سؤالك العلمي<input id="nexoraAskQuery" required placeholder="مثال: What is Python and what paradigms does it support?"></label>
+                <button class="primary-button" type="submit" id="askAssistantBtn">إرسال الاستفسار <span>↗</span></button>
+              </form>
+              <div id="nexoraAskAnswer" class="small-muted" style="margin-top:0.75rem;"></div>
+            </div>
+
+            <div class="nexora-columns" style="margin-top:1.5rem;">
               <section class="nexora-subpanel">
                 <h4>أهداف التعلم</h4>
                 <form id="nexoraGoalForm" class="nexora-form compact">
@@ -140,6 +224,7 @@
               </section>
             </div>
           </section>
+
           <section class="panel activity-panel" id="moduleActivityPanel">
             <div class="panel-heading"><div><span class="section-kicker">AUDITABLE OPERATIONS</span><h3>نشاط البيانات والنماذج</h3></div><button class="outline-button" id="refreshModuleActivity">تحديث النشاط ↻</button></div>
             <div class="activity-grid"><div><h4>عمليات استيراد البيانات</h4><div id="ingestionActivity" class="nexora-record-list"><p class="empty-cell">ابدأ جلسة التطوير لتحميل النشاط.</p></div></div><div><h4>إصدارات النماذج</h4><div id="modelActivity" class="nexora-record-list"><p class="empty-cell">لا توجد بيانات نماذج محملة.</p></div></div></div>

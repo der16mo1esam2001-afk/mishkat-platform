@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Any
+from typing import Any, Callable
 from uuid import UUID, uuid4
 
 import jwt
@@ -15,6 +15,8 @@ from .settings import settings
 
 bearer = HTTPBearer(auto_error=False)
 
+ALLOWED_ROLES = {"authenticated", "platform_admin", "domain_operator", "auditor", "learner"}
+
 
 @dataclass(frozen=True)
 class Principal:
@@ -22,6 +24,12 @@ class Principal:
     email: str | None
     role: str
     claims: dict[str, Any]
+
+    def has_role(self, *roles: str) -> bool:
+        if "platform_admin" in (self.role, *self.claims.get("roles", [])):
+            return True
+        user_roles = {self.role, *self.claims.get("roles", [])}
+        return bool(user_roles.intersection(roles))
 
 
 @lru_cache(maxsize=1)
@@ -70,7 +78,8 @@ def get_current_principal(credentials: HTTPAuthorizationCredentials | None = Dep
     if not credentials or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token required")
     claims = _decode_token(credentials.credentials)
-    if claims.get("role") != "authenticated":
+    role = claims.get("role", "authenticated")
+    if role not in ALLOWED_ROLES and not any(r in ALLOWED_ROLES for r in claims.get("roles", [])):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="An authenticated user token is required")
     try:
         user_id = UUID(str(claims["sub"]))
@@ -79,24 +88,48 @@ def get_current_principal(credentials: HTTPAuthorizationCredentials | None = Dep
     return Principal(
         user_id=user_id,
         email=claims.get("email"),
-        role=str(claims.get("role", "authenticated")),
+        role=str(role),
         claims=claims,
     )
 
 
-def issue_local_development_token() -> dict[str, Any]:
+def require_role(*required_roles: str) -> Callable[[Principal], Principal]:
+    """Dependency enforcing RBAC scopes on route handlers."""
+    def role_checker(principal: Principal = Depends(get_current_principal)) -> Principal:
+        if not principal.has_role(*required_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Required one of: {', '.join(required_roles)}",
+            )
+        return principal
+    return role_checker
+
+
+def issue_local_development_token(
+    user_id: UUID | None = None,
+    role: str = "authenticated",
+    email: str = "local-user@mishkat.invalid",
+    expires_in_hours: int = 2,
+) -> dict[str, Any]:
     if settings.environment != "development" or settings.auth_mode != "development" or not settings.dev_auth_enabled:
         raise HTTPException(status_code=404, detail="Not found")
     now = datetime.now(timezone.utc)
-    user_id = UUID("9e3c8e5e-ef0b-4ca7-8ae5-7c15f6a9e201")
+    uid = user_id or UUID("9e3c8e5e-ef0b-4ca7-8ae5-7c15f6a9e201")
     payload = {
-        "sub": str(user_id),
-        "email": "local-user@mishkat.invalid",
-        "role": "authenticated",
+        "sub": str(uid),
+        "email": email,
+        "role": role,
         "iss": "mishkat-local-development",
         "aud": settings.jwt_audience,
         "iat": now,
-        "exp": now + timedelta(hours=2),
+        "exp": now + timedelta(hours=expires_in_hours),
     }
     token = jwt.encode(payload, settings.dev_auth_secret, algorithm="HS256")
-    return {"access_token": token, "token_type": "bearer", "expires_in": 7200, "mode": "LOCAL DEVELOPMENT ONLY"}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": expires_in_hours * 3600,
+        "role": role,
+        "user_id": str(uid),
+        "mode": "LOCAL DEVELOPMENT ONLY",
+    }

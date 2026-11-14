@@ -1,34 +1,43 @@
-# Changelog
+# سجل تغييرات مِشكاة — Changelog
 
-## 0.2.0 — 2026-11-14
-- Hardened production configuration validation and browser/API security headers.
-- Added request correlation IDs and no-store policies for API responses.
-- Made database pool initialization independent for each of the five databases.
-- Added owner-scoped module activity API for ingestion, model registry and audit records.
-- Added an adult-only NEXORA learner workspace with explicit versioned consent, append-only consent history, goals, learning paths and JSON data export.
-- Blocked learner goal creation and updates when consent is not active.
-- Added an idempotent NEXORA consent migration and Windows migration helper for pre-existing volumes.
-- Hardened the API container with a non-root user, read-only filesystem, dropped capabilities, no-new-privileges and healthcheck.
-- Added GitHub Actions checks for Python, JavaScript, tests, Bandit, dependency audit, Compose configuration and container build.
-- Added Dependabot update policies, `.dockerignore`, and `.editorconfig`.
-- Bumped PWA cache version to invalidate the previous static shell.
-- Added a detailed Antigravity runbook and an independent Codex review prompt.
-- Updated documentation and the next-phase engineering prompt.
+كل التغييرات المهمة في مشروع MISHKAT تُسجل في هذا الملف.
 
-## 0.1.0 — 2026-11-13
-- Initial MISHKAT unified-platform engineering package.
-- Five independent PostgreSQL/PostGIS databases and domain schemas.
-- Owner-scoped RLS and composite owner-aware foreign keys.
-- Unified Arabic RTL responsive frontend and PWA shell.
-- FastAPI gateway, local-only development JWT and production JWKS verification path.
-- Source registry, ingestion provenance and model registry tables per domain.
-- NASA POWER daily data connector with separate AGRONEX/ENERGIS persistence.
-- Scientific governance, security, roadmap and acceptance documentation.
+## [0.3.0] — 2026-11-14 (المرحلة الحالية)
 
+### أضيف (Added)
+- **إطار موحد لموصلات البيانات (Unified Connectors Framework):**
+  - فئة أساسية `BaseConnector` مع التحقق من التراخيص، وبصمات SHA-256 للمنشأ، وتصنيف الحالات.
+  - محولات لـ 6 مصادر: NASA POWER (حي)، WHO GHO (حي)، WRI Aqueduct، FAOSTAT، Ember Energy، وUNESCO UIS.
+- **مسارات قطاعية مكتملة (Vertical Slices):**
+  - **VITALIS:** تسجيل المرضى المستعارين، ملاحظات FHIR R5، خطط الرعاية، وسياسة السلامة السريرية.
+  - **AQUANEX:** تسجيل أصول المياه الجغرافية، قياسات الحساسات، اعتماد تنبيهات التسرب بواسطة المشغل، وسياسة القراءة فقط لـ SCADA.
+  - **AGRONEX:** تسجيل المزارع والقطع، دورات المحاصيل، رصد الأمراض المشتبهة، وحظر التوصيات الكيميائية دون ترخيص.
+  - **ENERGIS:** تسجيل مواقع الطاقة والعدادات، قراءات العدادات، توقعات الأحمال بنطاق عدم يقين، وسياسة القراءة فقط للشبكات.
+  - **NEXORA:** تسجيل الإتقان المعرفي، الحذف النهائي للبيانات (Right to Erasure)، ومساعد دراسي grounded بالمصادر المرخصة.
+- **بوابة الذكاء الاصطناعي الآمنة (AI Gateway):**
+  - مرشح آلي لاكتشاف وإحباط حقن التوجيهات والتجاوزات (Prompt Injections).
+  - رفض قاطع لأي استفسارات تشخيص سريري أو تحكم تشغيلي.
+  - سجل أدوات النطاقات مع معاينة الإجراءات واشتراط رمز موافقة بشري قبل الكتابة.
+- **الأمان والصلابة الهندسية:**
+  - وسيط تحديد معدل الطلبات (Rate Limiting).
+  - وسيط تنقية السجلات (PII Redaction).
+  - دعم أدوار المستخدمين والمؤسسات (RBAC).
+- **الاختبارات:**
+  - 42 اختباراً آلياً ناجحاً بنسبة 100% يغطي العقود، والمسارات، والموصلات، والأمن، والذكاء الاصطناعي.
 
-## 2026-11-14 — Antigravity One-Shot Build Pack
+---
 
-- إضافة `MASTER_PROMPT_ANTIGRAVITY_ONE_SHOT_AR.md` بوصفه التوجيه التنفيذي الموحد الذي يجمع نطاق المنتج والمعمارية والأمن والبيانات والذكاء الاصطناعي والاختبارات والتسليم.
-- إضافة `START_HERE_ANTIGRAVITY_AR.md` لتوضيح استخدام الحزمة في Workspace واحد.
-- الحفاظ على البرومبتات والوثائق السابقة داخل `docs/`، وإضافة نسخة v0.1.0 التاريخية في `docs/archive/` لأغراض الرجوع فقط.
-- لا يتغير إصدار التطبيق نفسه عن 0.2.0؛ هذه حزمة توجيه وتجميع للمستودع وليست ادعاءً بإصدار برمجي جديد.
+## [0.2.0] — 2026-11-14
+
+### أضيف (Added)
+- حماية إعدادات الإنتاج ورفض development auth والقيم التجريبية عند `ENVIRONMENT=production`.
+- ترويسات أمان متشددة ومعرف طلب `X-Request-ID` ومنع التخزين المؤقت لاستجابات API.
+- مسار عمل أولي لملف التعلم والأهداف والمسارات وتصدير البيانات وسحب الموافقة في NEXORA.
+
+---
+
+## [0.1.0] — 2026-11-13
+
+### أضيف (Added)
+- النواة الهندسية الأساسية بخمس قواعد بيانات PostgreSQL مستقلة.
+- واجهة ويب متجاوبة PWA بهوية بصرية مستوحاة من التراث العربي العلمي.

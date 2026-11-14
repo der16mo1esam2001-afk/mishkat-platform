@@ -2,19 +2,51 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
+from .ai_gateway import (
+    AIProviderStatus,
+    GroundedResponse,
+    ToolActionPreview,
+    ai_gateway,
+    tool_registry,
+)
 from .catalog import SOURCE_AS_OF, SOURCES, WORKSPACES
+from .connectors import (
+    BaseConnector,
+    ConnectorMetadata,
+    ConnectorStatus,
+    FetchResult,
+    connector_registry,
+)
 from .database import db_hub
-from .security import Principal, get_current_principal, issue_local_development_token
+from .domains import (
+    agronex_router,
+    aquanex_router,
+    energis_router,
+    vitalis_router,
+)
+from .middleware import (
+    RateLimiter,
+    SecurityAndObservabilityMiddleware,
+    rate_limiter,
+    redact_sensitive_text,
+)
+from .security import (
+    Principal,
+    get_current_principal,
+    issue_local_development_token,
+    require_role,
+)
 from .settings import settings
 
 
@@ -30,48 +62,23 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="MISHKAT Intelligence Platform API",
-    version="0.2.0",
+    version="0.3.0",
     description="Unified application gateway for five independently isolated sector workspaces.",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url="/redoc" if settings.environment == "development" else None,
     openapi_url="/openapi.json" if settings.environment == "development" else None,
     lifespan=lifespan,
 )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
-
-@app.middleware("http")
-async def security_and_request_context(request: Request, call_next):
-    """Attach a correlation id and conservative browser/API security headers."""
-    supplied_id = request.headers.get("x-request-id", "")
-    request_id = supplied_id[:80] if supplied_id and all(ch.isalnum() or ch in "-_." for ch in supplied_id) else str(uuid4())
-    request.state.request_id = request_id
-    response = await call_next(request)
-    response.headers["X-Request-ID"] = request_id
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    if request.url.path.startswith("/api/") or request.url.path == "/api":
-        response.headers["Cache-Control"] = "no-store, max-age=0"
-        response.headers["Pragma"] = "no-cache"
-    if settings.environment.lower() == "production":
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-            "font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; "
-            "frame-ancestors 'none'; form-action 'self'"
-        )
-        if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    return response
-
-from pathlib import Path
+app.add_middleware(SecurityAndObservabilityMiddleware)
 
 _FILE = Path(__file__).resolve()
 _FRONTEND_CANDIDATES = [_FILE.parents[2] / "frontend", _FILE.parents[1] / "frontend"]
@@ -117,7 +124,9 @@ def system_overview(principal: Principal = Depends(get_current_principal)):
     statuses = db_hub.check()
     return {
         "platform": "MISHKAT",
+        "version": app.version,
         "authenticated_user": str(principal.user_id),
+        "user_role": principal.role,
         "database_isolation": "five independent PostgreSQL databases",
         "databases": statuses,
         "all_databases_connected": all(value == "connected" for value in statuses.values()),
@@ -141,8 +150,63 @@ def ai_status(principal: Principal = Depends(get_current_principal)):
         "status": "not_configured",
         "inference_enabled": False,
         "message": "No AI model provider is connected in this engineering package. No generated answer or prediction is being simulated.",
-        "required_before_enablement": ["approved provider and data-processing terms", "server-side secret management", "domain-specific safety policy", "evaluation dataset and independent acceptance tests"],
+        "required_before_enablement": [
+            "approved provider and data-processing terms",
+            "server-side secret management",
+            "domain-specific safety policy",
+            "evaluation dataset and independent acceptance tests",
+        ],
+        "safe_grounded_assistant_available": True,
     }
+
+
+class AskGroundedQueryRequest(BaseModel):
+    query: str = Field(min_length=3, max_length=1000)
+
+
+@app.post("/api/v1/ai/nexora/ask", tags=["ai-governance", "nexora"])
+def ask_grounded_assistant(
+    payload: AskGroundedQueryRequest,
+    principal: Principal = Depends(get_current_principal),
+):
+    """Low-risk grounded educational assistant query with citations and prompt injection defense."""
+    response = ai_gateway.answer_grounded_query(payload.query, user_id=principal.user_id)
+    return {
+        "query": response.query,
+        "answer": response.grounded_answer,
+        "citations": [
+            {
+                "source_id": c.source_id,
+                "title": c.title,
+                "publisher": c.publisher,
+                "license": c.license_name,
+                "url": c.source_url,
+                "retrieved_at": c.retrieved_at,
+                "section": c.section_or_page,
+            }
+            for c in response.citations
+        ],
+        "retrieved_facts": response.retrieved_facts,
+        "inference_and_advice": response.inference_and_advice,
+        "is_refusal": response.is_refusal,
+        "refusal_reason": response.refusal_reason,
+        "latency_ms": round(response.latency_ms, 2),
+        "model_key": response.model_key,
+        "prompt_version": response.prompt_version,
+    }
+
+
+@app.get("/api/v1/connectors", tags=["connectors"])
+async def list_connectors(principal: Principal = Depends(get_current_principal)):
+    return {"items": await connector_registry.get_all_statuses()}
+
+
+@app.get("/api/v1/connectors/{connector_id}/health", tags=["connectors"])
+async def connector_health(connector_id: str, principal: Principal = Depends(get_current_principal)):
+    connector = connector_registry.get(connector_id)
+    if not connector:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    return await connector.check_health()
 
 
 class NasaPowerRequest(BaseModel):
@@ -202,80 +266,78 @@ async def fetch_nasa_power(payload: NasaPowerRequest, principal: Principal = Dep
         for timestamp, value in observations.items():
             rows.append({"date": timestamp, "parameter": parameter, "value": value, "unit": source_unit})
 
-    # Persist observations only in the owning sector database selected by NASA community.
     domain, table = ("agronex", "weather_observations") if payload.community == "AG" else ("energis", "resource_observations")
     persisted = {domain: 0}
-    correlation_id = str(__import__("uuid").uuid4())
-    for domain, table in ((domain, table),):
+    correlation_id = str(uuid4())
+    try:
+        with db_hub.user_connection(domain, principal) as conn:
+            run = conn.execute(
+                """INSERT INTO public.ingestion_runs
+                (owner_id, source_id, target_dataset, status, started_at, request_metadata, license_snapshot)
+                VALUES (%s, 'nasa_power', %s, 'running', now(), %s::jsonb, 'NASA POWER source terms; attribution retained')
+                RETURNING id""",
+                (str(principal.user_id), table,
+                 __import__("json").dumps({"latitude": payload.latitude, "longitude": payload.longitude,
+                                            "start": payload.start_date.isoformat(), "end": payload.end_date.isoformat(),
+                                            "parameters": requested, "time_standard": "UTC"})),
+            ).fetchone()
+            ingestion_run_id = str(run["id"])
+            for row in rows:
+                conn.execute(
+                    f"""INSERT INTO {table}
+                    (owner_id, observation_date, parameter_code, value, unit, latitude, longitude,
+                     source_id, ingestion_run_id, raw_value)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'nasa_power', %s, %s::jsonb)
+                    ON CONFLICT (owner_id, observation_date, parameter_code, latitude, longitude)
+                    DO UPDATE SET value = EXCLUDED.value, raw_value = EXCLUDED.raw_value,
+                                  ingestion_run_id = EXCLUDED.ingestion_run_id, imported_at = now()""",
+                    (
+                        str(principal.user_id),
+                        datetime.strptime(row["date"], "%Y%m%d").date(),
+                        row["parameter"],
+                        (float(row["value"]) if row["value"] not in (None, -999, -999.0) else None),
+                        row["unit"],
+                        payload.latitude,
+                        payload.longitude,
+                        ingestion_run_id,
+                        __import__("json").dumps(row),
+                    ),
+                )
+                persisted[domain] += 1
+            conn.execute(
+                """UPDATE public.ingestion_runs SET status='completed', finished_at=now(),
+                   records_received=%s, records_saved=%s WHERE id=%s""",
+                (len(rows), persisted[domain], ingestion_run_id),
+            )
+            conn.execute(
+                """INSERT INTO public.audit_events
+                (owner_id, event_type, entity_type, entity_id, actor_type, source_id, correlation_id, details)
+                VALUES (%s, 'data_import', %s, %s, 'integration', 'nasa_power', %s, %s::jsonb)""",
+                (str(principal.user_id), table, ingestion_run_id, correlation_id,
+                 __import__("json").dumps({"record_count": len(rows), "latitude": payload.latitude,
+                                            "longitude": payload.longitude, "start": payload.start_date.isoformat(),
+                                            "end": payload.end_date.isoformat(), "parameters": requested})),
+            )
+    except Exception as exc:  # noqa: BLE001
+        persisted[domain] = -1
+        app.state.last_ingestion_error = {"domain": domain, "error": type(exc).__name__}
         try:
             with db_hub.user_connection(domain, principal) as conn:
-                run = conn.execute(
+                conn.execute(
                     """INSERT INTO public.ingestion_runs
-                    (owner_id, source_id, target_dataset, status, started_at, request_metadata, license_snapshot)
-                    VALUES (%s, 'nasa_power', %s, 'running', now(), %s::jsonb, 'NASA POWER source terms; attribution retained')
-                    RETURNING id""",
-                    (str(principal.user_id), table,
+                    (owner_id, source_id, target_dataset, status, started_at, finished_at, error_code, request_metadata)
+                    VALUES (%s, 'nasa_power', %s, 'failed', now(), now(), %s, %s::jsonb)""",
+                    (str(principal.user_id), table, type(exc).__name__,
                      __import__("json").dumps({"latitude": payload.latitude, "longitude": payload.longitude,
-                                                "start": payload.start_date.isoformat(), "end": payload.end_date.isoformat(),
-                                                "parameters": requested, "time_standard": "UTC"})),
-                ).fetchone()
-                ingestion_run_id = str(run["id"])
-                for row in rows:
-                    conn.execute(
-                        f"""INSERT INTO {table}
-                        (owner_id, observation_date, parameter_code, value, unit, latitude, longitude,
-                         source_id, ingestion_run_id, raw_value)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, 'nasa_power', %s, %s::jsonb)
-                        ON CONFLICT (owner_id, observation_date, parameter_code, latitude, longitude)
-                        DO UPDATE SET value = EXCLUDED.value, raw_value = EXCLUDED.raw_value,
-                                      ingestion_run_id = EXCLUDED.ingestion_run_id, imported_at = now()""",
-                        (
-                            str(principal.user_id),
-                            datetime.strptime(row["date"], "%Y%m%d").date(),
-                            row["parameter"],
-                            (float(row["value"]) if row["value"] not in (None, -999, -999.0) else None),
-                            row["unit"],
-                            payload.latitude,
-                            payload.longitude,
-                            ingestion_run_id,
-                            __import__("json").dumps(row),
-                        ),
-                    )
-                    persisted[domain] += 1
-                conn.execute(
-                    """UPDATE public.ingestion_runs SET status='completed', finished_at=now(),
-                       records_received=%s, records_saved=%s WHERE id=%s""",
-                    (len(rows), persisted[domain], ingestion_run_id),
+                                                "start": payload.start_date.isoformat(), "end": payload.end_date.isoformat()})),
                 )
-                conn.execute(
-                    """INSERT INTO public.audit_events
-                    (owner_id, event_type, entity_type, entity_id, actor_type, source_id, correlation_id, details)
-                    VALUES (%s, 'data_import', %s, %s, 'integration', 'nasa_power', %s, %s::jsonb)""",
-                    (str(principal.user_id), table, ingestion_run_id, correlation_id,
-                     __import__("json").dumps({"record_count": len(rows), "latitude": payload.latitude,
-                                                "longitude": payload.longitude, "start": payload.start_date.isoformat(),
-                                                "end": payload.end_date.isoformat(), "parameters": requested})),
-                )
-        except Exception as exc:  # noqa: BLE001 - report partial success accurately
-            persisted[domain] = -1
-            app.state.last_ingestion_error = {"domain": domain, "error": type(exc).__name__}
-            try:
-                with db_hub.user_connection(domain, principal) as conn:
-                    conn.execute(
-                        """INSERT INTO public.ingestion_runs
-                        (owner_id, source_id, target_dataset, status, started_at, finished_at, error_code, request_metadata)
-                        VALUES (%s, 'nasa_power', %s, 'failed', now(), now(), %s, %s::jsonb)""",
-                        (str(principal.user_id), table, type(exc).__name__,
-                         __import__("json").dumps({"latitude": payload.latitude, "longitude": payload.longitude,
-                                                    "start": payload.start_date.isoformat(), "end": payload.end_date.isoformat()})),
-                    )
-            except Exception:
-                pass
+        except Exception:
+            pass
 
     return {
         "source": "NASA POWER Daily API",
         "source_url": "https://power.larc.nasa.gov/docs/services/api/temporal/daily/",
-        "retrieved_at": datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds"),
+        "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "location": {"latitude": payload.latitude, "longitude": payload.longitude},
         "period": {"start": payload.start_date.isoformat(), "end": payload.end_date.isoformat()},
         "time_standard": "UTC",
@@ -316,16 +378,12 @@ def module_snapshot(domain: str, principal: Principal = Depends(get_current_prin
     with db_hub.user_connection(domain, principal) as conn:
         for table in table_map[domain]:
             try:
-                # A nested psycopg transaction is a SAVEPOINT. If a table is
-                # unavailable, roll back only this count query, not the whole session.
                 with conn.transaction():
                     row = conn.execute(f"SELECT count(*) AS n FROM public.{table}").fetchone()
                 counts[table] = row["n"]
             except Exception:
                 counts[table] = None
     return {"workspace": domain, "counts": counts, "note": "Null means table/schema unavailable or query failed; it is not a zero count."}
-
-
 
 
 DOMAIN_SET = {item["id"] for item in WORKSPACES}
@@ -443,8 +501,6 @@ def get_nexora_profile(principal: Principal = Depends(get_current_principal)):
 
 @app.put("/api/v1/nexora/profile", tags=["nexora"])
 def upsert_nexora_profile(payload: NexoraProfileInput, principal: Principal = Depends(get_current_principal)):
-    # This first pilot deliberately excludes minors until guardian consent,
-    # safeguarding workflows and age-appropriate product reviews are implemented.
     if not payload.adult_confirmed:
         raise HTTPException(status_code=422, detail="This pilot is for adults only. Confirm that the learner is 18 or older.")
     if not payload.consent_confirmed:
@@ -644,6 +700,13 @@ def export_nexora_data(principal: Principal = Depends(get_current_principal)):
             "This export endpoint does not delete source records.",
         ],
     }
+
+
+# Mount sector-specific modular routers
+app.include_router(vitalis_router, prefix="/api/v1")
+app.include_router(aquanex_router, prefix="/api/v1")
+app.include_router(agronex_router, prefix="/api/v1")
+app.include_router(energis_router, prefix="/api/v1")
 
 
 def run_server() -> None:

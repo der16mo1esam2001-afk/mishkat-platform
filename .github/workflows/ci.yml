@@ -2,7 +2,7 @@ name: MISHKAT CI
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master, develop, release/*, antigravity/*]
   pull_request:
   workflow_dispatch:
 
@@ -42,7 +42,9 @@ jobs:
         run: python -m compileall -q backend
 
       - name: Check frontend JavaScript syntax
-        run: node --check frontend/assets/app.js
+        run: |
+          node --check frontend/assets/app.js
+          node --check frontend/sw.js
 
       - name: Validate Compose configuration
         env:
@@ -51,8 +53,8 @@ jobs:
           DEV_AUTH_SECRET: ci-only-secret-material-at-least-32-characters-long
         run: docker compose config --quiet
 
-      - name: Run automated tests
-        run: python -m pytest -q
+      - name: Run automated test suite
+        run: python -m pytest -v tests/
 
       - name: Scan backend for common Python security issues
         run: bandit -q -ll -r backend/app
