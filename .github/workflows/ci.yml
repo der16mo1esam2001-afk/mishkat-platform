@@ -1,0 +1,64 @@
+name: MISHKAT CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mishkat-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install backend and verification tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt pytest pyyaml bandit pip-audit
+
+      - name: Compile Python
+        run: python -m compileall -q backend
+
+      - name: Check frontend JavaScript syntax
+        run: node --check frontend/assets/app.js
+
+      - name: Validate Compose configuration
+        env:
+          PG_ADMIN_PASSWORD: ci-only-admin-password-not-for-production
+          MISHKAT_DB_PASSWORD: ci-only-app-password-not-for-production
+          DEV_AUTH_SECRET: ci-only-secret-material-at-least-32-characters-long
+        run: docker compose config --quiet
+
+      - name: Run automated tests
+        run: python -m pytest -q
+
+      - name: Scan backend for common Python security issues
+        run: bandit -q -ll -r backend/app
+
+      - name: Audit Python dependencies
+        run: pip-audit -r backend/requirements.txt
+
+      - name: Build API container
+        run: docker build --pull -f backend/Dockerfile -t mishkat-api:ci .

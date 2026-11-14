@@ -1,0 +1,115 @@
+name: mishkat
+services:
+  vitalis-db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_DB: vitalis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:?Set PG_ADMIN_PASSWORD in .env}
+      MISHKAT_DB_PASSWORD: ${MISHKAT_DB_PASSWORD:?Set MISHKAT_DB_PASSWORD in .env}
+    volumes:
+      - vitalis_data:/var/lib/postgresql/data
+      - ./database/vitalis:/docker-entrypoint-initdb.d:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d vitalis"], interval: 5s, timeout: 5s, retries: 20}
+    restart: unless-stopped
+
+  aquanex-db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_DB: aquanex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:?Set PG_ADMIN_PASSWORD in .env}
+      MISHKAT_DB_PASSWORD: ${MISHKAT_DB_PASSWORD:?Set MISHKAT_DB_PASSWORD in .env}
+    volumes:
+      - aquanex_data:/var/lib/postgresql/data
+      - ./database/aquanex:/docker-entrypoint-initdb.d:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d aquanex"], interval: 5s, timeout: 5s, retries: 20}
+    restart: unless-stopped
+
+  agronex-db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_DB: agronex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:?Set PG_ADMIN_PASSWORD in .env}
+      MISHKAT_DB_PASSWORD: ${MISHKAT_DB_PASSWORD:?Set MISHKAT_DB_PASSWORD in .env}
+    volumes:
+      - agronex_data:/var/lib/postgresql/data
+      - ./database/agronex:/docker-entrypoint-initdb.d:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d agronex"], interval: 5s, timeout: 5s, retries: 20}
+    restart: unless-stopped
+
+  energis-db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_DB: energis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:?Set PG_ADMIN_PASSWORD in .env}
+      MISHKAT_DB_PASSWORD: ${MISHKAT_DB_PASSWORD:?Set MISHKAT_DB_PASSWORD in .env}
+    volumes:
+      - energis_data:/var/lib/postgresql/data
+      - ./database/energis:/docker-entrypoint-initdb.d:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d energis"], interval: 5s, timeout: 5s, retries: 20}
+    restart: unless-stopped
+
+  nexora-db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_DB: nexora
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_ADMIN_PASSWORD:?Set PG_ADMIN_PASSWORD in .env}
+      MISHKAT_DB_PASSWORD: ${MISHKAT_DB_PASSWORD:?Set MISHKAT_DB_PASSWORD in .env}
+    volumes:
+      - nexora_data:/var/lib/postgresql/data
+      - ./database/nexora:/docker-entrypoint-initdb.d:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d nexora"], interval: 5s, timeout: 5s, retries: 20}
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      AUTH_MODE: ${AUTH_MODE:-development}
+      DEV_AUTH_ENABLED: ${DEV_AUTH_ENABLED:-true}
+      DEV_AUTH_SECRET: ${DEV_AUTH_SECRET:-local-please-change-to-a-long-random-secret-value}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-authenticated}
+      SUPABASE_JWKS_URL: ${SUPABASE_JWKS_URL:-}
+      SUPABASE_ISSUER: ${SUPABASE_ISSUER:-}
+      VITALIS_DB_URL: postgresql://mishkat_app:${MISHKAT_DB_PASSWORD}@vitalis-db:5432/vitalis
+      AQUANEX_DB_URL: postgresql://mishkat_app:${MISHKAT_DB_PASSWORD}@aquanex-db:5432/aquanex
+      AGRONEX_DB_URL: postgresql://mishkat_app:${MISHKAT_DB_PASSWORD}@agronex-db:5432/agronex
+      ENERGIS_DB_URL: postgresql://mishkat_app:${MISHKAT_DB_PASSWORD}@energis-db:5432/energis
+      NEXORA_DB_URL: postgresql://mishkat_app:${MISHKAT_DB_PASSWORD}@nexora-db:5432/nexora
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+    ports:
+      - "127.0.0.1:8000:8000"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/live', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      vitalis-db: {condition: service_healthy}
+      aquanex-db: {condition: service_healthy}
+      agronex-db: {condition: service_healthy}
+      energis-db: {condition: service_healthy}
+      nexora-db: {condition: service_healthy}
+    restart: unless-stopped
+
+volumes:
+  vitalis_data:
+  aquanex_data:
+  agronex_data:
+  energis_data:
+  nexora_data:

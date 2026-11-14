@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c32">
+  <meta name="description" content="مِشكاة — منظومة ذكاء اصطناعي موحدة بخمسة قطاعات علمية مستقلة.">
+  <title>مِشكاة | MISHKAT Intelligence</title>
+  <link rel="icon" href="/assets/mishkat-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="مشكاة الرئيسية">
+        <img src="/assets/mishkat-mark.svg" alt="" width="42" height="42">
+        <span><strong>مِشكاة</strong><small>MISHKAT INTELLIGENCE</small></span>
+      </a>
+      <div class="sidebar-label">مساحة العمل</div>
+      <nav class="main-nav" aria-label="التنقل الرئيسي">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">⌂</span><span>نظرة عامة</span></button>
+        <div class="nav-divider"></div>
+        <div class="sidebar-label">القطاعات المتخصصة</div>
+        <button class="nav-item" data-view="vitalis"><span class="module-dot dot-vitalis"></span><span>VITALIS <small>الصحة والوقاية</small></span></button>
+        <button class="nav-item" data-view="aquanex"><span class="module-dot dot-aquanex"></span><span>AQUANEX <small>استخبارات المياه</small></span></button>
+        <button class="nav-item" data-view="agronex"><span class="module-dot dot-agronex"></span><span>AGRONEX <small>الزراعة والغذاء</small></span></button>
+        <button class="nav-item" data-view="energis"><span class="module-dot dot-energis"></span><span>ENERGIS <small>استخبارات الطاقة</small></span></button>
+        <button class="nav-item" data-view="nexora"><span class="module-dot dot-nexora"></span><span>NEXORA <small>التعلم والمعرفة</small></span></button>
+        <div class="nav-divider"></div>
+        <div class="sidebar-label">حوكمة المنصة</div>
+        <button class="nav-item" data-view="sources"><span class="nav-icon">◈</span><span>مصادر البيانات والأدلة</span></button>
+        <button class="nav-item" data-view="architecture"><span class="nav-icon">⌘</span><span>المعمارية والأمان</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="integrity-card">
+          <span class="integrity-icon">✧</span>
+          <div><strong>مبدأ مِشكاة</strong><p>لا رقم بلا مصدر، ولا قرار حساس بلا مراجعة.</p></div>
+        </div>
+        <div class="user-card">
+          <div class="avatar">م</div>
+          <div><strong>مساحة التطوير</strong><small id="authStatus">جلسة غير متصلة</small></div>
+          <button class="icon-button" id="localSession" title="بدء جلسة تطوير محلية" aria-label="بدء جلسة تطوير محلية">↗</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu icon-button" id="mobileMenu" aria-label="فتح القائمة">☰</button>
+        <div class="breadcrumbs"><span>مشكاة</span><b>/</b><strong id="breadcrumbCurrent">نظرة عامة</strong></div>
+        <div class="top-actions">
+          <span class="environment-pill"><i></i> بيئة تطوير محلية</span>
+          <button class="icon-button" id="refreshStatus" title="فحص حالة النظام" aria-label="فحص حالة النظام">↻</button>
+          <div class="top-avatar">م</div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="view active" id="view-overview">
+          <div class="eyebrow"><span class="eyebrow-line"></span> منظومة الذكاء التطبيقي متعددة القطاعات</div>
+          <div class="hero-row">
+            <div class="hero-copy">
+              <h1>من المعرفة إلى <em>الأثر.</em></h1>
+              <p>خمسة عقول متخصصة، ضمن منظومة واحدة تربط العلم بالبيانات والقرار، لخدمة الإنسان والموارد والمستقبل.</p>
+              <div class="hero-actions">
+                <button class="primary-button" data-action="explore">استكشف القطاعات <span>←</span></button>
+                <button class="secondary-button" data-view="sources">مصادر البيانات والأدلة</button>
+              </div>
+            </div>
+            <div class="hero-emblem" aria-hidden="true">
+              <div class="emblem-orbit orbit-one"></div><div class="emblem-orbit orbit-two"></div>
+              <div class="emblem-core"><img src="/assets/mishkat-mark.svg" alt="" width="106" height="106"></div>
+              <span class="orbit-label label-top">SCIENCE</span><span class="orbit-label label-right">DATA</span><span class="orbit-label label-bottom">IMPACT</span><span class="orbit-label label-left">HUMANITY</span>
+            </div>
+          </div>
+
+          <div class="status-strip">
+            <div class="status-intro"><span class="live-indicator"></span><strong>سلامة المنظومة</strong><small id="lastCheck">لم يتم إجراء فحص اتصال بعد</small></div>
+            <div class="status-cell"><span>قواعد البيانات</span><strong id="dbCount">5 مستقلة</strong><small id="dbState">بانتظار الاتصال</small></div>
+            <div class="status-cell"><span>مصادر البيانات</span><strong>موثقة المصدر</strong><small>لا تُعرض بيانات افتراضية</small></div>
+            <div class="status-cell"><span>محرك الذكاء الاصطناعي</span><strong>غير موصل</strong><small>لا توجد استنتاجات مولدة</small></div>
+            <button class="outline-button" id="checkConnections">فحص الاتصالات <span>↻</span></button>
+          </div>
+
+          <div class="section-heading">
+            <div><span class="section-kicker">THE FIVE INTELLIGENCE DOMAINS</span><h2>خمسة قطاعات. رؤية واحدة.</h2><p>كل قطاع له خبرته وبياناته وقاعدة معلوماته المستقلة.</p></div>
+            <span class="section-index">01 — 05</span>
+          </div>
+          <div class="module-grid" id="moduleGrid">
+            <article class="module-card module-vitalis"><div class="module-card-top"><span class="module-symbol">✚</span><span class="module-code">01 / HEALTH</span></div><h3>VITALIS <small>AI</small></h3><p>ذكاء صحي وقائي يدعم المتابعة المنظمة والمعلومات الطبية الموثقة.</p><div class="module-card-foot"><span class="stage-tag">مرحلة التأسيس</span><button data-view="vitalis" aria-label="فتح VITALIS">←</button></div></article>
+            <article class="module-card module-aquanex"><div class="module-card-top"><span class="module-symbol">≈</span><span class="module-code">02 / WATER</span></div><h3>AQUANEX</h3><p>استخبارات الموارد المائية وجودة المياه والأصول والشبكات.</p><div class="module-card-foot"><span class="stage-tag">مرحلة التأسيس</span><button data-view="aquanex" aria-label="فتح AQUANEX">←</button></div></article>
+            <article class="module-card module-agronex"><div class="module-card-top"><span class="module-symbol">❋</span><span class="module-code">03 / FOOD</span></div><h3>AGRONEX</h3><p>ذكاء زراعي يجمع بيانات الطقس والتربة والمحاصيل والإنتاج.</p><div class="module-card-foot"><span class="stage-tag">مرحلة التأسيس</span><button data-view="agronex" aria-label="فتح AGRONEX">←</button></div></article>
+            <article class="module-card module-energis"><div class="module-card-top"><span class="module-symbol">ϟ</span><span class="module-code">04 / ENERGY</span></div><h3>ENERGIS</h3><p>تحليل الطاقة والتنبؤ بالأحمال وكفاءة الاستهلاك والتوليد.</p><div class="module-card-foot"><span class="stage-tag">مرحلة التأسيس</span><button data-view="energis" aria-label="فتح ENERGIS">←</button></div></article>
+            <article class="module-card module-nexora"><div class="module-card-top"><span class="module-symbol">✧</span><span class="module-code">05 / KNOWLEDGE</span></div><h3>NEXORA</h3><p>تعلم شخصي ومعرفة موثقة وقياس للإتقان والاحتفاظ.</p><div class="module-card-foot"><span class="stage-tag">مرحلة التأسيس</span><button data-view="nexora" aria-label="فتح NEXORA">←</button></div></article>
+          </div>
+
+          <div class="lower-grid">
+            <section class="panel evidence-panel"><div class="panel-heading"><div><span class="section-kicker">EVIDENCE FIRST</span><h3>مركز الأدلة العلمية</h3></div><span class="tiny-status">قابل للتحقق</span></div><p>تُسجّل كل معلومة مع مصدرها ونوعها وتاريخها وترخيصها وحدود استخدامها.</p><div class="evidence-list"><div><span class="evidence-mark mark-blue">D</span><div><strong>بيانات المصدر</strong><small>الجهة الناشرة والرابط الأصلي</small></div></div><div><span class="evidence-mark mark-gold">↻</span><div><strong>تاريخ التحديث</strong><small>آخر استيراد وفترة تغطية البيانات</small></div></div><div><span class="evidence-mark mark-green">✓</span><div><strong>حدود الاستخدام</strong><small>ترخيص البيانات ودلالتها العلمية</small></div></div></div><button class="text-button" data-view="sources">عرض سجل المصادر <span>←</span></button></section>
+            <section class="panel architecture-panel"><div class="panel-heading"><div><span class="section-kicker">TRUST BY DESIGN</span><h3>الثقة جزء من الهندسة</h3></div><span class="shield-icon">◇</span></div><div class="architecture-rows"><div><span>01</span><strong>هوية موحدة</strong><small>دخول واحد وصلاحيات محددة</small></div><div><span>02</span><strong>خمس قواعد مستقلة</strong><small>عزل البيانات بحسب المجال</small></div><div><span>03</span><strong>مراجعة بشرية</strong><small>للقرارات الطبية والتشغيلية الحساسة</small></div><div><span>04</span><strong>أثر قابل للقياس</strong><small>اختبارات ونتائج موثقة</small></div></div><button class="text-button" data-view="architecture">عرض المعمارية <span>←</span></button></section>
+          </div>
+        </section>
+
+        <section class="view" id="view-module">
+          <div class="module-detail-hero" id="moduleHero"><div><span class="section-kicker" id="moduleKicker">DOMAIN / 01</span><h1 id="moduleTitle">VITALIS</h1><p id="moduleDescription"></p><span class="stage-tag" id="moduleStage">مرحلة التأسيس</span></div><div class="module-detail-icon" id="moduleIcon">✚</div></div>
+          <div class="detail-grid"><section class="panel"><div class="panel-heading"><div><span class="section-kicker">DOMAIN CAPABILITIES</span><h3>الوحدات الأساسية</h3></div></div><div id="moduleCapabilities" class="capability-list"></div></section><section class="panel"><div class="panel-heading"><div><span class="section-kicker">DATA BOUNDARY</span><h3>حدود البيانات</h3></div></div><div class="data-boundary"><div class="database-visual"><span>DB</span></div><strong id="moduleDatabase">قاعدة مستقلة</strong><p>لا تُشارك سجلات هذا المجال مع قواعد القطاعات الأخرى.</p><span class="connection-state" id="moduleDbState">حالة الاتصال: لم يتم التحقق</span></div><div class="panel-note" id="moduleSafety"></div></section></div>
+          <section class="panel connector-panel"><div class="panel-heading"><div><span class="section-kicker">REAL DATA INTEGRATION</span><h3>البيانات والاتصال</h3></div><span class="tiny-status">لا بيانات تجريبية</span></div><p id="moduleDataNote">سيظهر هنا اتصال المصدر الفعلي وحالة الاستيراد بعد ضبط البيئة.</p><div id="moduleSources" class="source-chip-list"></div><div class="connector-actions"><button class="primary-button" id="nasaAction" hidden>استيراد بيانات NASA POWER <span>↗</span></button><span class="small-muted" id="connectorDisclaimer">لا تُعرض أي قيمة قبل جلبها والتحقق من مصدرها.</span></div></section>
+          <section class="panel nexora-workspace" id="nexoraWorkspace" hidden>
+            <div class="panel-heading"><div><span class="section-kicker">NEXORA LEARNER WORKSPACE · PILOT</span><h3>ملف التعلم والأهداف والمسارات</h3></div><span class="tiny-status">وظائف فعلية متصلة بقاعدة NEXORA</span></div>
+            <p class="panel-note">هذه نسخة تجريبية للبالغين فقط. يلزم تأكيد السن والموافقة قبل حفظ ملف التعلم. لا يوجد مساعد AI أو محتوى مولّد في هذا الإصدار.</p>
+            <form id="nexoraProfileForm" class="nexora-form">
+              <label>اسم العرض<input id="nexoraDisplayName" name="display_name" minlength="1" maxlength="100" required placeholder="اسم يظهر داخل ملف التعلم"></label>
+              <label>لغة الواجهة<select id="nexoraLocale" name="locale"><option value="ar-EG">العربية</option><option value="en">English</option></select></label>
+              <label class="consent-check"><input id="nexoraAdultConfirm" type="checkbox" required> أؤكد أن ملف المتعلم يخص شخصاً بالغاً (18 عاماً أو أكثر).</label>
+              <label class="consent-check"><input id="nexoraConsentConfirm" type="checkbox" required> قرأت ووافقت على سياسة حفظ ملف التعلم <strong id="nexoraConsentVersion">جارٍ تحميل الإصدار…</strong>.</label>
+              <button class="primary-button" type="submit" id="saveNexoraProfile">حفظ ملف التعلم</button>
+              <div class="nexora-privacy-actions"><button class="text-button" type="button" id="nexoraExportData">تصدير بياناتي</button><button class="text-button" type="button" id="revokeNexoraConsent">سحب الموافقة</button></div>
+              <span id="nexoraProfileState" class="small-muted">لم يتم إنشاء ملف تعلم بعد.</span>
+            </form>
+            <div class="nexora-columns">
+              <section class="nexora-subpanel">
+                <h4>أهداف التعلم</h4>
+                <form id="nexoraGoalForm" class="nexora-form compact">
+                  <label>الهدف<input id="nexoraGoalTitle" maxlength="160" required placeholder="مثال: إتقان أساسيات Python"></label>
+                  <label>المجال<input id="nexoraGoalDomain" maxlength="100" required placeholder="علوم الحاسب"></label>
+                  <label>تاريخ مستهدف<input id="nexoraGoalDate" type="date"></label>
+                  <button class="secondary-button" type="submit">إضافة هدف</button>
+                </form>
+                <div id="nexoraGoals" class="nexora-record-list"><p class="empty-cell">أنشئ ملف التعلم أولاً.</p></div>
+              </section>
+              <section class="nexora-subpanel">
+                <h4>مسارات التعلم</h4>
+                <form id="nexoraPathForm" class="nexora-form compact">
+                  <label>اسم المسار<input id="nexoraPathTitle" maxlength="160" required placeholder="مسار تطوير البرمجيات"></label>
+                  <label>المجال<input id="nexoraPathDomain" maxlength="100" required placeholder="البرمجة"></label>
+                  <label>الهدف النهائي<textarea id="nexoraPathObjective" minlength="8" maxlength="1200" required placeholder="ما المهارة أو النتيجة التي تريد الوصول إليها؟"></textarea></label>
+                  <button class="secondary-button" type="submit">إنشاء مسار</button>
+                </form>
+                <div id="nexoraPaths" class="nexora-record-list"><p class="empty-cell">أنشئ ملف التعلم أولاً.</p></div>
+              </section>
+            </div>
+          </section>
+          <section class="panel activity-panel" id="moduleActivityPanel">
+            <div class="panel-heading"><div><span class="section-kicker">AUDITABLE OPERATIONS</span><h3>نشاط البيانات والنماذج</h3></div><button class="outline-button" id="refreshModuleActivity">تحديث النشاط ↻</button></div>
+            <div class="activity-grid"><div><h4>عمليات استيراد البيانات</h4><div id="ingestionActivity" class="nexora-record-list"><p class="empty-cell">ابدأ جلسة التطوير لتحميل النشاط.</p></div></div><div><h4>إصدارات النماذج</h4><div id="modelActivity" class="nexora-record-list"><p class="empty-cell">لا توجد بيانات نماذج محملة.</p></div></div></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-sources">
+          <div class="page-header"><span class="section-kicker">DATA PROVENANCE & SCIENTIFIC EVIDENCE</span><h1>مصادر البيانات والأدلة</h1><p>قاعدة المصادر تسجل جهة النشر وطريقة الوصول وشروط الاستخدام وحدود الاستدلال.</p></div>
+          <div class="source-summary"><div><strong>مصادر قطاعية</strong><span>الصحة • المياه • الغذاء • الطاقة • التعليم</span></div><div><strong>سياسة الاستيراد</strong><span>مصدر موثق + وقت استرجاع + بيانات وصفية</span></div><div><strong>التمييز العلمي</strong><span>مقاس / إحصائي / تقديري / متوقع</span></div></div>
+          <div class="panel source-table-panel"><div class="panel-heading"><div><span class="section-kicker">SOURCE REGISTRY</span><h3>سجل المصادر</h3></div><button class="outline-button" id="loadSources">تحميل السجل <span>↻</span></button></div><div class="table-scroll"><table><thead><tr><th>المصدر</th><th>القطاع</th><th>طريقة الوصول</th><th>حالة التهيئة</th><th>الرابط الرسمي</th></tr></thead><tbody id="sourceRows"><tr><td colspan="5" class="empty-cell">ابدأ جلسة تطوير محلية لتحميل سجل المصادر من الـ API.</td></tr></tbody></table></div><p class="table-footnote">وجود مصدر في السجل لا يعني أنه تم استيراد البيانات أو التحقق من ملاءمتها لكل حالة استخدام.</p></div>
+        </section>
+
+        <section class="view" id="view-architecture">
+          <div class="page-header"><span class="section-kicker">SYSTEM ENGINEERING</span><h1>المعمارية والأمان</h1><p>منصة موحدة في التجربة، موزعة في البيانات، ومقيدة بالصلاحيات والمراجعة البشرية.</p></div>
+          <div class="architecture-map"><div class="arch-node arch-core"><span>✧</span><strong>MISHKAT CORE</strong><small>بوابة الهوية والتنسيق وسجل الأدلة</small></div><div class="arch-connector"></div><div class="arch-domains"><div class="arch-domain"><b class="dot-vitalis"></b><strong>VITALIS</strong><small>PostgreSQL 01</small></div><div class="arch-domain"><b class="dot-aquanex"></b><strong>AQUANEX</strong><small>PostgreSQL 02</small></div><div class="arch-domain"><b class="dot-agronex"></b><strong>AGRONEX</strong><small>PostgreSQL 03</small></div><div class="arch-domain"><b class="dot-energis"></b><strong>ENERGIS</strong><small>PostgreSQL 04</small></div><div class="arch-domain"><b class="dot-nexora"></b><strong>NEXORA</strong><small>PostgreSQL 05</small></div></div><div class="arch-caption">البيانات القطاعية لا تُدمج. المشاركة تتم عبر واجهات API موثقة وبموافقة وصلاحيات محددة.</div></div>
+          <div class="detail-grid"><section class="panel"><div class="panel-heading"><div><span class="section-kicker">PROPOSED STACK</span><h3>التقنيات المعتمدة في الحزمة</h3></div></div><div class="tech-list"><div><strong>Frontend</strong><span>HTML / CSS / JavaScript في النموذج الأولي؛ قابل للتوسعة إلى Next.js + TypeScript</span></div><div><strong>Backend</strong><span>Python + FastAPI</span></div><div><strong>Databases</strong><span>5 × PostgreSQL، مع PostGIS للبيانات المكانية</span></div><div><strong>Authentication</strong><span>JWT محلي للتطوير فقط؛ Supabase/OIDC للتحقق الإنتاجي</span></div><div><strong>Deployment</strong><span>Docker Compose محلياً؛ CI/CD وبيئات staging/production لاحقاً</span></div></div></section><section class="panel"><div class="panel-heading"><div><span class="section-kicker">SECURITY GATES</span><h3>بوابات ما قبل الإنتاج</h3></div></div><div class="gate-list"><div><span class="gate-number">01</span><div><strong>الهوية والصلاحيات</strong><small>اختبار عزل A/B لكل قاعدة</small></div><span class="gate-pending">مطلوب</span></div><div><span class="gate-number">02</span><div><strong>مصادر البيانات</strong><small>تراخيص ومنشأ وتحديث</small></div><span class="gate-pending">مطلوب</span></div><div><span class="gate-number">03</span><div><strong>سلامة الذكاء الاصطناعي</strong><small>تقييم مستقل ومراجعة بشرية</small></div><span class="gate-pending">مطلوب</span></div><div><span class="gate-number">04</span><div><strong>الاستعادة والمراقبة</strong><small>نسخ احتياطي واختبار استعادة</small></div><span class="gate-pending">مطلوب</span></div></div></section></div>
+        </section>
+
+        <footer class="page-footer"><span>مِشكاة © 2026</span><span>من جذور المعرفة إلى آفاق المستقبل</span><span>نسخة هندسية أولية — ليست إطلاقاً إنتاجياً</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="nasaDialog" class="modal">
+    <form id="nasaForm" method="dialog">
+      <div class="modal-heading"><div><span class="section-kicker">NASA POWER DAILY API</span><h2>استيراد بيانات مناخية وشمسية</h2></div><button type="button" class="icon-button" id="closeNasa">×</button></div>
+      <p>أدخل إحداثيات النقطة والفترة الزمنية. سيختار النظام مجموعة بارامترات متوافقة مع القطاع المفتوح، ثم يحفظ النتائج في قاعدة ذلك القطاع فقط.</p>
+      <div class="form-grid"><label>خط العرض<input id="latitude" type="number" step="any" min="-90" max="90" placeholder="مثال: 30.04" required></label><label>خط الطول<input id="longitude" type="number" step="any" min="-180" max="180" placeholder="مثال: 31.23" required></label><label>من تاريخ<input id="startDate" type="date" required></label><label>إلى تاريخ<input id="endDate" type="date" required></label></div>
+      <div class="modal-note">أدخل إحداثيات المزرعة أو المنشأة المقصودة. بيانات NASA POWER شبكية وقد تختلف خلية البيانات عن النقطة المدخلة؛ وهي ليست قراءة حساس محلي أو عداد كهرباء.</div>
+      <div class="modal-actions"><button class="primary-button" type="submit" id="fetchNasa">جلب البيانات وحفظها <span>↗</span></button><button class="secondary-button" type="button" id="cancelNasa">إلغاء</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>
